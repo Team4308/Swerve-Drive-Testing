@@ -1,6 +1,5 @@
 package ca.team4308.absolutelib.wrapper.drive;
 
-import com.kauailabs.navx.frc.AHRS;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import ca.team4308.absolutelib.wrapper.MotoredSubsystem;
@@ -20,5 +19,4 @@ public abstract class TankDriveSubsystem extends MotoredSubsystem {
 
     public abstract double getRightSensorVelocity();
 
-    public abstract AHRS getAhrs();
 }

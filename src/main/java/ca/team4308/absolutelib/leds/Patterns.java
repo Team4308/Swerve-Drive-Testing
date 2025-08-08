@@ -3,6 +3,8 @@ package ca.team4308.absolutelib.leds;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
+import java.util.Optional;
 import java.util.Random;
 
 
@@ -326,10 +328,10 @@ public class Patterns {
 
     // Helper methods
     private static Color getAllianceColor() {
-        Alliance alliance = DriverStation.getAlliance();
+        Object alliance = DriverStation.getAlliance();
         if (alliance == Alliance.Blue) {
-            return new Color(0, 0, 1); // Blue
+            return new Color(0, 0, 1); 
         }
-        return new Color(1, 0, 0); // Red
+        return new Color(1, 0, 0); 
     }
 }

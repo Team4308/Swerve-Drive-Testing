@@ -18,8 +18,10 @@ import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
@@ -36,7 +38,12 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 
+import ca.team4308.absolutelib.control.JoystickHelper;
+import ca.team4308.absolutelib.math.DoubleUtils;
+import ca.team4308.absolutelib.math.Vector2;
+import ca.team4308.absolutelib.wrapper.LogSubsystem;
 import ca.team4308.absolutelib.wrapper.LoggedTunableNumber;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -45,8 +52,10 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import frc.robot.Constants;
 // import edu.wpi.first.networktables.NetworkTableInstance;
 // import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -55,10 +64,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
-import frc.robot.Constants;
-import frc.robot.Constants.Swerve;
-import frc.robot.FieldLayout;
-import frc.robot.subsystems.swervedrive.Vision.Cameras;
+import edu.wpi.first.util.sendable.Sendable;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -69,7 +75,7 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
-public class SwerveSubsystem extends LogSubsystem
+public class SwerveSubsystem extends LogSubsystem // Ensure LogSubsystem extends SubsystemBase
 {
   boolean alignToSpeaker = false;
   boolean alignToAmp = false;
@@ -215,15 +221,14 @@ public class SwerveSubsystem extends LogSubsystem
   {
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        swerveDrive.getMaximumVelocity(), 4.0,
-        swerveDrive.getMaximumAngularVelocity(), Units.degreesToRadians(720));
+        swerveDrive.getMaximumChassisVelocity(), 4.0,
+        swerveDrive.getMaximumChassisVelocity(), Units.degreesToRadians(720));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands
     return AutoBuilder.pathfindToPose(
         pose,
         constraints,
-        0.0, // Goal end velocity in meters/sec
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+        0.0
                                      );
   }
 
@@ -248,7 +253,7 @@ public class SwerveSubsystem extends LogSubsystem
                                                                       headingX.getAsDouble(),
                                                                       headingY.getAsDouble(),
                                                                       swerveDrive.getOdometryHeading().getRadians(),
-                                                                      swerveDrive.getMaximumVelocity()));
+                                                                      swerveDrive.getMaximumChassisVelocity()));
     });
   }
 
@@ -269,7 +274,7 @@ public class SwerveSubsystem extends LogSubsystem
                                                                       translationY.getAsDouble(),
                                                                       rotation.getAsDouble() * Math.PI,
                                                                       swerveDrive.getOdometryHeading().getRadians(),
-                                                                      swerveDrive.getMaximumVelocity()));
+                                                                      swerveDrive.getMaximumChassisVelocity()));
     });
   }
 
@@ -378,9 +383,9 @@ public class SwerveSubsystem extends LogSubsystem
       }
 
       // Make the robot move
-      swerveDrive.drive(new Translation2d(driveInput.x * swerveDrive.getMaximumVelocity(),
-                                          transY * swerveDrive.getMaximumVelocity()),
-                        rotation * swerveDrive.getMaximumAngularVelocity(),
+      swerveDrive.drive(new Translation2d(driveInput.x * swerveDrive.getMaximumChassisVelocity(),
+                                          transY * swerveDrive.getMaximumChassisVelocity()),
+                        rotation * swerveDrive.getMaximumChassisVelocity(),
                         fieldRelative,
                         false);
     });
