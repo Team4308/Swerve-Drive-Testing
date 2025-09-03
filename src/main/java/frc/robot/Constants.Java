@@ -15,6 +15,15 @@ import swervelib.math.Matter;
 
 public final class Constants {
 
+    public static class Mapping {
+        public static class Pigeon2 {
+            public static final int gyro = 0; // Example value
+        }
+        public static class Intake {
+            public static final int leftBeamBreak = 1; // Example value
+            public static final int rightBeamBreak = 2; // Example value
+        }
+    }
     public static final double ROBOT_MASS = 48.0;
     public static final Matter CHASSIS = new Matter(
             new Translation3d(Units.inchesToMeters(27), Units.inchesToMeters(27), Units.inchesToMeters(40)),
